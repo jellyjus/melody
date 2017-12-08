@@ -1,0 +1,13 @@
+body {
+    height: 100vh;
+    background-color: aliceblue;
+}
+
+#messages {
+    height: 400px;
+    overflow-y: scroll;
+}
+
+.win {
+    background: #f8f8f8;
+}
