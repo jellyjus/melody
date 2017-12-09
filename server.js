@@ -2,7 +2,7 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
-global.appRoot = __dirname;
+const emotes = require(__dirname + '/frontend/emotes.json');
 
 const randomInt = (min, max) => {
     let rand = min - 0.5 + Math.random() * (max - min + 1);
@@ -75,6 +75,12 @@ class Server {
     this.io.on('connection', (socket) => {
       console.log('user connected');
 
+      socket.on('disconnect', () => {
+        const index = this.gameFindUsers.findIndex(obj => obj.id === socket.id);
+          if (index !== -1 )
+            this.gameFindUsers.splice(index, 1);
+      });
+
       socket.on('game_search', (userName) => {
         if (socket.userName || !userName)
           return;
@@ -97,6 +103,12 @@ class Server {
       });
 
       socket.on('send_message', (text) => {
+        text = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        for (let key in emotes) {
+            const regexp = new RegExp(emotes[key].code, "g");
+            const img = `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${emotes[key].id}/1.0">`;
+            text = text.replace(regexp, img)
+        }
         if (text.indexOf(this.song.author) !== -1 || text.indexOf(this.song.name) !== -1) {
           this.generateSong();
           this.io.to('game_room').emit('win_game', {userName: socket.userName, text});

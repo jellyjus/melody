@@ -11,3 +11,13 @@ body {
 .win {
     background: #f8f8f8;
 }
+
+#emotes {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.emote:hover {
+    cursor: pointer;
+}
