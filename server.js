@@ -7,7 +7,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static(__dirname + '/frontend/public'));
+app.use(express.static(__dirname + '/frontend/dist'));
 
 const port = process.env.PORT || 443;
 const credentials = {
