@@ -120,7 +120,7 @@ class Server {
   }
 
   createServer() {
-    const port = process.env.PORT || 8080;
+    const port = process.env.PORT || 80;
     this.server = http.createServer(this.app);
     this.server.listen(port, () => {
       console.log(`Start listening on localhost:${port}`)
