@@ -30,16 +30,21 @@ class Server {
         try {
             const transports = process.env.NODE_ENV === 'dev'?
                 [
-                    new winston.transports.Console({format: winston.format.simple()})
+                    new winston.transports.Console({})
                 ] :
                 [
-                    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-                    new winston.transports.File({ filename: 'combined.log' })
+                    new winston.transports.File({ filename: 'error.log', level: 'error'}),
+                    new winston.transports.File({ filename: 'combined.log', })
                 ];
+
+            const format = winston.format.printf(info => {
+                const date = new Date(info.timestamp);
+                return `${date.getFullYear()}.${date.getMonth()}.${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} ${info.level}: ${info.message}`;
+            });
 
             this.logger = winston.createLogger({
             level: 'info',
-            format: winston.format.json(),
+            format: winston.format.combine(winston.format.timestamp(), format),
             transports: transports
         });
         } catch (e) {
