@@ -1,12 +1,17 @@
 import Vue from 'vue'
-import App from './App.vue'
 import router from './router'
 import store from './store'
-import UIkit from 'uikit'
-import Icons from 'uikit/dist/js/uikit-icons'
+import App from './App.vue'
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+import socket from './services/socket-service'
+import Utils from './utils'
+
+Utils.parseLocationParams();
 
 Vue.config.productionTip = false;
-UIkit.use(Icons);
+Vue.use(ElementUI);
+Vue.use(socket);
 
 new Vue({
   router,

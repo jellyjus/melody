@@ -7,6 +7,9 @@
   },
   "dependencies": {
     "body-parser": "^1.18.3",
-    "express": "^4.16.3"
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1",
+    "socket.io-cookie-parser": "^1.0.0",
+    "winston": "^3.0.0"
   }
 }
