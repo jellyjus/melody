@@ -6,7 +6,9 @@ const winston = require('winston');
 const io = require('socket.io');
 const cookieParser = require('socket.io-cookie-parser');
 
+const config = require('./config');
 const socketEvents = require('./routing/events');
+const Db = require('./db/db');
 
 class Server {
     constructor() {
@@ -17,6 +19,7 @@ class Server {
 
         this.initEnv();
         this.initLog();
+        this.initDb();
         this.createServer();
         this.initSockets();
     }
@@ -37,14 +40,9 @@ class Server {
                     new winston.transports.File({ filename: 'combined.log', })
                 ];
 
-            const format = winston.format.printf(info => {
-                const date = new Date(info.timestamp);
-                return `${date.getFullYear()}.${date.getMonth()}.${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} ${info.level}: ${info.message}`;
-            });
-
             this.logger = winston.createLogger({
-            level: 'info',
-            format: winston.format.combine(winston.format.timestamp(), format),
+            level: process.env.LOG_LEVEL || 'debug',
+            format: winston.format.combine(winston.format.timestamp({format: 'YYYY-MM-DD HH:mm:ss'}), winston.format.simple()),
             transports: transports
         });
         } catch (e) {
@@ -54,10 +52,19 @@ class Server {
 
     }
 
+    async initDb() {
+        try {
+            this.db = await new Db(config.db);
+            this.logger.info("Db connected")
+        } catch (e) {
+            this.logger.error(`can't connect to db: ${e}`)
+        }
+    }
+
     initSockets() {
         this.io = io(this.server);
         this.io.use(cookieParser());
-        const events = new socketEvents(this.io, this.logger);
+        const events = new socketEvents(this.io, this.logger, config);
         this.io.on('connection', events.initEvents.bind(events));
     }
 
