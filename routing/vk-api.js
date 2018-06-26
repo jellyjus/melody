@@ -6,20 +6,28 @@ class VkApi {
         this.config = config;
     }
 
-    async getAlbums() {
-        const url = this._getUrl("getAlbums");
-        return this.request(url)
+    async getAlbums(uid) {
+        const url = this._getUrl("getAlbums", {owner_id: uid});
+        return this._request(url)
+    }
+
+    async getAlbumTracks(uid, albumId) {
+        const url = this._getUrl("get", {owner_id: uid, album_id: albumId});
+        return this._request(url)
     }
 
     _getUrl(method, params = {}, type = 'audio') {
         const q = querystring.stringify(params);
-        return `https://api.vk.com/method/${type}.${method}?access_token=${this.config.vkToken}&v=5.60&${q}`
+        return `https://api.vk.com/method/${type}.${method}?access_token=${this.config.vkToken}&v=5.71&${q}`
     }
 
-    async request(url) {
+    async _request(url) {
         const options = {
             method: 'GET',
             uri: url,
+            headers: {
+                'User-Agent': 'KateMobileAndroid/49-434 (Android 8.1.0; SDK 27; x86; Google Android SDK built for x86; en)'
+            },
             json: true
         };
         try {

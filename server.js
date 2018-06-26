@@ -17,9 +17,13 @@ class Server {
         this.app.use(bodyParser.urlencoded({extended: false}));
         this.app.use(express.static(__dirname + '/frontend/dist'));
 
+        this.init();
+    }
+
+    async init() {
         this.initEnv();
         this.initLog();
-        this.initDb();
+        await this.initDb();
         this.createServer();
         this.initSockets();
     }
@@ -55,6 +59,7 @@ class Server {
     async initDb() {
         try {
             this.db = await new Db(config.db);
+            this.db.initModels();
             this.logger.info("Db connected")
         } catch (e) {
             this.logger.error(`can't connect to db: ${e}`)
@@ -64,7 +69,7 @@ class Server {
     initSockets() {
         this.io = io(this.server);
         this.io.use(cookieParser());
-        const events = new socketEvents(this.io, this.logger, config);
+        const events = new socketEvents(this.io, this.db, this.logger, config);
         this.io.on('connection', events.initEvents.bind(events));
     }
 
