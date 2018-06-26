@@ -60,9 +60,10 @@ class Server {
         try {
             this.db = await new Db(config.db);
             this.db.initModels();
-            this.logger.info("Db connected")
+            this.logger.info("Db connected");
         } catch (e) {
-            this.logger.error(`can't connect to db: ${e}`)
+            this.logger.error(`can't connect to db: ${e}`);
+            process.exit(1);
         }
     }
 

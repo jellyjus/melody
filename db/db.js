@@ -1,4 +1,5 @@
-const mongoClient = require("mongodb").MongoClient;
+const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
 
 const playlists = require("./models/playlists");
 
@@ -8,20 +9,21 @@ class Db {
     constructor(config) {
         const db = this;
         return new Promise((res, rej) => {
-            mongoClient.connect(`mongodb+srv://${config.user}:${config.password}@melody-imews.gcp.mongodb.net/test?retryWrites=true`,
-                (err, client) => {
-                    if (err) {
-                        return rej(err)
-                    }
-                     this.db = client.db(config.db);
-                    return res(db)
+            mongoose.connect(`mongodb+srv://${config.user}:${config.password}@melody-imews.gcp.mongodb.net/test?retryWrites=true`, null, err => {
+                if (err) {
+                    return rej(err)
                 }
-            );
+                return res(db)
+            });
         })
     }
 
     initModels() {
-        this.playlists = new playlists(this.db, PLAYLISTS)
+        this._playlists = new playlists(PLAYLISTS)
+    }
+
+    get playlists() {
+        return this._playlists
     }
 }
 

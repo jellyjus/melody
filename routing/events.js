@@ -15,9 +15,7 @@ class Events {
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
-        //this.getAlbums(socket, {}, (res) => {})
-        const res = this.db.playlists.getAll();
-        console.log("@@@@@@", res)
+        socket.on('createPlaylist', this.createPlaylist.bind(this, socket));
     }
 
     disconnect() {
@@ -45,7 +43,17 @@ class Events {
             this.logger.error(`error on getAlbumTracks: ${e}`);
             cb({error: e})
         }
+    }
 
+    async createPlaylist(socket, data, cb) {
+        try {
+            const uid = socket.request.cookies.uid;
+            this.db.playlists.
+            cb(res)
+        } catch (e) {
+            this.logger.error(`error on createPlaylist: ${e}`);
+            cb({error: e})
+        }
     }
 }
 
