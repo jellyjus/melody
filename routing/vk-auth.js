@@ -1,6 +1,6 @@
 const config = require('../config');
 const crypto = require('crypto');
-const request = require('request')
+const request = require('request');
 
 const vkAuthMiddleware = (socket) => {
     return new Promise((resolve, rej) => {

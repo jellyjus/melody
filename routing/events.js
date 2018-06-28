@@ -6,7 +6,12 @@ class Events {
         this.db = db;
         this.logger = logger;
         this.config = config;
-        this.vkApi = new vkApi(config)
+        this.vkApi = new vkApi(config);
+
+        this.io.use((socket, next) => {
+            socket.uid = process.env.NODE_ENV === 'dev'? '96113254' : socket.request.cookies.uid;
+            next()
+        })
     }
 
     initEvents(socket) {
@@ -16,6 +21,7 @@ class Events {
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
         socket.on('createPlaylist', this.createPlaylist.bind(this, socket));
+        socket.on('getPlaylists', this.getPlaylists.bind(this, socket));
     }
 
     disconnect() {
@@ -24,8 +30,7 @@ class Events {
 
     async getAlbums(socket, data, cb) {
         try {
-            const uid = socket.request.cookies.uid;
-            const res = await this.vkApi.getAlbums(uid);
+            const res = await this.vkApi.getAlbums(socket.uid);
             cb(res)
         } catch (e) {
             this.logger.error(`error on getAlbums: ${e}`);
@@ -35,9 +40,8 @@ class Events {
 
     async getAlbumTracks(socket, data, cb) {
         try {
-            const uid = socket.request.cookies.uid;
             const albumId = data.albumId;
-            const res = await this.vkApi.getAlbumTracks(uid, albumId);
+            const res = await this.vkApi.getAlbumTracks(socket.uid, albumId);
             cb(res)
         } catch (e) {
             this.logger.error(`error on getAlbumTracks: ${e}`);
@@ -47,8 +51,18 @@ class Events {
 
     async createPlaylist(socket, data, cb) {
         try {
-            const uid = socket.request.cookies.uid;
-            this.db.playlists.
+            data.author = socket.uid;
+            const res = await this.db.playlists.add(data);
+            cb(res)
+        } catch (e) {
+            this.logger.error(`error on createPlaylist: ${e}`);
+            cb({error: e})
+        }
+    }
+
+    async getPlaylists(socket, data, cb) {
+        try {
+            const res = await this.db.playlists.getAll();
             cb(res)
         } catch (e) {
             this.logger.error(`error on createPlaylist: ${e}`);

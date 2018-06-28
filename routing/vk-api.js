@@ -7,7 +7,7 @@ class VkApi {
     }
 
     async getAlbums(uid) {
-        const url = this._getUrl("getAlbums", {owner_id: uid});
+        const url = this._getUrl("getPlaylists", {owner_id: uid});
         return this._request(url)
     }
 

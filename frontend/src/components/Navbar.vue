@@ -1,15 +1,14 @@
 <template>
-    <el-menu
-            :default-active="'rooms'"
-            class="el-menu-demo"
-            @select="handleSelect"
-            mode="horizontal"
-            background-color="#545c64"
-            text-color="#fff"
-            active-text-color="#ffd04b">
-        <el-menu-item index="rooms">Комнаты</el-menu-item>
-        <el-menu-item index="playlists">Плейлисты</el-menu-item>
-    </el-menu>
+    <Menu mode="horizontal" active-name="rooms" @on-select="handleSelect">
+        <MenuItem name="/rooms">
+            <Icon type="ios-paper"></Icon>
+            Комнаты
+        </MenuItem>
+        <MenuItem name="/playlists">
+            <Icon type="ios-people"></Icon>
+            Плейлисты
+        </MenuItem>
+    </Menu>
 </template>
 
 <script>
@@ -27,5 +26,7 @@
 </script>
 
 <style scoped>
-
+    .el-menu-demo {
+        border-bottom: none;
+    }
 </style>

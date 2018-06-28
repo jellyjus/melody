@@ -11,7 +11,33 @@ const playlistScheme = new Schema({
     likes: {
         type: Number,
         default: 0
-    }
+    },
+    author: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 20
+    },
+    tracks: [
+        {
+            author: {
+                type: String,
+                required: true,
+                minlength: 2,
+                maxlength: 20
+            },
+            name: {
+                type: String,
+                required: true,
+                minlength: 2,
+                maxlength: 20
+            },
+            url: {
+                type: String,
+                required: true
+            },
+        }
+    ]
 });
 
 class Playlists {
@@ -19,13 +45,13 @@ class Playlists {
         this.model = mongoose.model(collectionName, playlistScheme);
     }
 
-    getAll() {
-
+    async getAll() {
+        return await this.model.find().exec()
     }
 
     async add(data) {
         const p = new this.model({data});
-        await p.save();
+        return await p.save();
     }
 
 
