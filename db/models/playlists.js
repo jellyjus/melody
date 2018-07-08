@@ -20,13 +20,13 @@ const playlistScheme = new Schema({
     },
     tracks: [
         {
-            author: {
+            artist: {
                 type: String,
                 required: true,
                 minlength: 2,
                 maxlength: 20
             },
-            name: {
+            title: {
                 type: String,
                 required: true,
                 minlength: 2,
@@ -50,7 +50,7 @@ class Playlists {
     }
 
     async add(data) {
-        const p = new this.model({data});
+        const p = new this.model(data);
         return await p.save();
     }
 

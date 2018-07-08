@@ -22,6 +22,7 @@
   .layout {
     padding: 10px 10px;
     height: 100%;
+    overflow-y: auto;
   }
 </style>
 <script>

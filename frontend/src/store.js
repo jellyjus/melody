@@ -5,12 +5,13 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    currentAlbum: null
+    addedTracks: []
   },
   mutations: {
-    setCurrentAlbum(state, data) {
-      state.currentAlbum = data
-    }
+      addOrDeleteTrack(state, track) {
+          const idx =  state.addedTracks.findIndex(obj => obj.id === track.id);
+          idx !== -1 ? state.addedTracks.splice(idx, 1) : state.addedTracks.push(track);
+      }
   },
   actions: {
 

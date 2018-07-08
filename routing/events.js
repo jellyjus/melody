@@ -20,7 +20,7 @@ class Events {
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
-        socket.on('createPlaylist', this.createPlaylist.bind(this, socket));
+        socket.on('addPlaylist', this.addPlaylist.bind(this, socket));
         socket.on('getPlaylists', this.getPlaylists.bind(this, socket));
     }
 
@@ -49,9 +49,10 @@ class Events {
         }
     }
 
-    async createPlaylist(socket, data, cb) {
+    async addPlaylist(socket, data, cb) {
         try {
             data.author = socket.uid;
+            this.logger.debug(`adding playlist`, data);
             const res = await this.db.playlists.add(data);
             cb(res)
         } catch (e) {
