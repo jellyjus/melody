@@ -39,7 +39,19 @@ const parseLocationParams = () => {
     setCookie(['auth_key', 'uid'], [vkProps['auth_key'], vkProps['viewer_id']])
 };
 
+const getCookie = (name) => {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const splited = cookie.split('=');
+        if (splited[0].trim() === name)
+            return splited[1]
+    }
+
+};
+
 export default {
     setCookie,
-    parseLocationParams
+    getCookie,
+    parseLocationParams,
+
 };

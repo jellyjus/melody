@@ -9,7 +9,7 @@ class Db {
     constructor(config) {
         const db = this;
         return new Promise((res, rej) => {
-            mongoose.connect(`mongodb+srv://${config.user}:${config.password}@melody-imews.gcp.mongodb.net/test?retryWrites=true`, null, err => {
+            mongoose.connect(`mongodb://${config.user}:${config.password}@ds018848.mlab.com:18848/melody-staging`, null, err => {
                 if (err) {
                     return rej(err)
                 }

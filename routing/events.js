@@ -16,12 +16,15 @@ class Events {
 
     initEvents(socket) {
         const cookies = socket.request.cookies;
+        socket.join('testroom');
+        console.log(this.io.of('/'))
         this.logger.info('socket connected', cookies);
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
         socket.on('addPlaylist', this.addPlaylist.bind(this, socket));
         socket.on('getPlaylists', this.getPlaylists.bind(this, socket));
+        socket.on('likePlaylist', this.likePlaylist.bind(this, socket));
     }
 
     disconnect() {
@@ -65,6 +68,24 @@ class Events {
         try {
             const res = await this.db.playlists.getAll();
             cb(res)
+        } catch (e) {
+            this.logger.error(`error on createPlaylist: ${e}`);
+            cb({error: e})
+        }
+    }
+
+    async likePlaylist(socket, data, cb) {
+        try {
+            const playlists = await this.db.playlists.getById(data._id);
+            const idx = playlists[0].likes.indexOf(socket.uid);
+
+            if (idx === -1) {
+                await this.db.playlists.like(data._id, socket.uid);
+                cb({like: true})
+            } else {
+                await this.db.playlists.unlike(data._id, socket.uid);
+                cb({like: false})
+            }
         } catch (e) {
             this.logger.error(`error on createPlaylist: ${e}`);
             cb({error: e})
