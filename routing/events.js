@@ -1,8 +1,11 @@
 const vkApi = require('./vk-api');
 
+const Room = require('./models/Room');
+
 class Events {
     constructor(io, db, logger, config) {
         this.io = io;
+        this.io.rooms = {};
         this.db = db;
         this.logger = logger;
         this.config = config;
@@ -16,8 +19,6 @@ class Events {
 
     initEvents(socket) {
         const cookies = socket.request.cookies;
-        socket.join('testroom');
-        console.log(this.io.of('/'))
         this.logger.info('socket connected', cookies);
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
@@ -25,6 +26,8 @@ class Events {
         socket.on('addPlaylist', this.addPlaylist.bind(this, socket));
         socket.on('getPlaylists', this.getPlaylists.bind(this, socket));
         socket.on('likePlaylist', this.likePlaylist.bind(this, socket));
+
+        socket.on('createRoom', this.createRoom.bind(this, socket))
     }
 
     disconnect() {
@@ -90,6 +93,23 @@ class Events {
             this.logger.error(`error on createPlaylist: ${e}`);
             cb({error: e})
         }
+    }
+
+    createRoom(socket, data, cb) {
+        try {
+            const roomID = `${socket.uid}_${+new Date()}`;
+            socket.join(roomID);
+            const room = this.getRoom(roomID);
+            room.settings = new Room(socket, roomID, data);
+            cb(room)
+        } catch (e) {
+            this.logger.error(`error on createPlaylist: ${e}`);
+            cb({error: e.toString()})
+        }
+    }
+
+    getRoom(id) {
+        return this.io.of('/').adapter.rooms[id]
     }
 }
 
