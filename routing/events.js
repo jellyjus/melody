@@ -1,6 +1,7 @@
 const vkApi = require('./vk-api');
 
 const Room = require('./models/Room');
+const auth = require('./auth');
 
 class Events {
     constructor(io, db, logger, config) {
@@ -11,15 +12,11 @@ class Events {
         this.config = config;
         this.vkApi = new vkApi(config);
 
-        this.io.use((socket, next) => {
-            socket.uid = process.env.NODE_ENV === 'dev'? '96113254' : socket.request.cookies.uid;
-            next()
-        })
+        this.io.use(auth)
     }
 
     initEvents(socket) {
-        const cookies = socket.request.cookies;
-        this.logger.info('socket connected', cookies);
+        this.logger.info('socket connected', socket.user);
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
@@ -27,6 +24,7 @@ class Events {
         socket.on('getPlaylists', this.getPlaylists.bind(this, socket));
         socket.on('likePlaylist', this.likePlaylist.bind(this, socket));
 
+        socket.on('getRooms', this.getRooms.bind(this, socket));
         socket.on('createRoom', this.createRoom.bind(this, socket))
     }
 
@@ -36,7 +34,7 @@ class Events {
 
     async getAlbums(socket, data, cb) {
         try {
-            const res = await this.vkApi.getAlbums(socket.uid);
+            const res = await this.vkApi.getAlbums(socket.user.id);
             cb(res)
         } catch (e) {
             this.logger.error(`error on getAlbums: ${e}`);
@@ -47,7 +45,7 @@ class Events {
     async getAlbumTracks(socket, data, cb) {
         try {
             const albumId = data.albumId;
-            const res = await this.vkApi.getAlbumTracks(socket.uid, albumId);
+            const res = await this.vkApi.getAlbumTracks(socket.user.id, albumId);
             cb(res)
         } catch (e) {
             this.logger.error(`error on getAlbumTracks: ${e}`);
@@ -57,7 +55,7 @@ class Events {
 
     async addPlaylist(socket, data, cb) {
         try {
-            data.author = socket.uid;
+            data.author = socket.user;
             this.logger.debug(`adding playlist`, data);
             const res = await this.db.playlists.add(data);
             cb(res)
@@ -80,13 +78,13 @@ class Events {
     async likePlaylist(socket, data, cb) {
         try {
             const playlists = await this.db.playlists.getById(data._id);
-            const idx = playlists[0].likes.indexOf(socket.uid);
+            const idx = playlists[0].likes.findIndex(user => user.id === socket.user.id);
 
             if (idx === -1) {
-                await this.db.playlists.like(data._id, socket.uid);
+                await this.db.playlists.like(data._id, socket.user);
                 cb({like: true})
             } else {
-                await this.db.playlists.unlike(data._id, socket.uid);
+                await this.db.playlists.unlike(data._id, socket.user);
                 cb({like: false})
             }
         } catch (e) {
@@ -95,12 +93,16 @@ class Events {
         }
     }
 
+    getRooms(socket, data, cb) {
+        cb(this.io.of('/').adapter.rooms)
+    }
+
     createRoom(socket, data, cb) {
         try {
             const roomID = `${socket.uid}_${+new Date()}`;
             socket.join(roomID);
-            const room = this.getRoom(roomID);
-            room.settings = new Room(socket, roomID, data);
+            let room = this.getRoom(roomID);
+            room = Object.assign(room, new Room(socket, roomID, data));
             cb(room)
         } catch (e) {
             this.logger.error(`error on createPlaylist: ${e}`);

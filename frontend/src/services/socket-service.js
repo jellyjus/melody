@@ -4,7 +4,7 @@ const SOCKET_URL = (process.env.NODE_ENV === 'development')? `http://127.0.0.1:$
 
 const socket = {
     install(Vue, options) {
-        Vue.prototype.$socket = io(SOCKET_URL)
+        Vue.prototype.$socket = io(SOCKET_URL, {autoConnect: false})
     }
 };
 

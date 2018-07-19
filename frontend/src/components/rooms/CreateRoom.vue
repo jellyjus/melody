@@ -22,7 +22,6 @@
 </template>
 
 <script>
-    import Utils from '../../utils'
     import Playlist from "../playlists/Playlist";
 
     export default {
@@ -36,14 +35,18 @@
             }
         },
         created() {
-            const uid = (process.env.NODE_ENV === 'development')? '96113254' : Utils.getCookie('uid');
             this.$socket.emit('getPlaylists', null, (data) => {
                 this.playlists = data.map((val) => {
-                    const idx = val.likes.indexOf(uid);
+                    const idx = val.likes.findIndex(user => user.id === this.user.id);
                     val.like = idx !== -1;
                     return val
                 });
             })
+        },
+        computed: {
+          user() {
+              return this.$store.state.user
+          }
         },
         methods: {
             selectPlaylist(playlist) {
@@ -56,7 +59,7 @@
                     playlist: this.playlist
                 };
                 this.$socket.emit('createRoom', data, (res) => {
-                    console.log(res)
+                    this.$router.push('/rooms')
                 })
             }
         }

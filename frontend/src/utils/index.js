@@ -49,7 +49,7 @@ const getCookie = (name) => {
 
 };
 
-export default {
+export default  {
     setCookie,
     getCookie,
     parseLocationParams,

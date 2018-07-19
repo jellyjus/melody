@@ -1,14 +1,13 @@
 class Room {
     constructor(socket, roomID, data) {
-        this.host = socket.uid;
+        this.host = socket.user;
         this.roomName = data.name;
         this.playlist = data.playlist;
         this.ID = roomID;
+        this.members = [this.host];
     }
 
-    get members() {
-        //return this.io.of('/').adapter.rooms[this.ID]
-    }
+
 }
 
 module.exports = Room;

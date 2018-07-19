@@ -19,6 +19,14 @@
 
             }
         },
+        created() {
+            this.$socket.emit('getRooms', null, res => {
+                for (let key in res) {
+                    console.log(res[key]);
+                }
+                //console.log('rooms: ',res)
+            })
+        },
         methods: {
             createRoom() {
                 this.$router.push('/create_room')

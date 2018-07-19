@@ -28,6 +28,19 @@
 <script>
     import Navbar from "./components/Navbar";
     export default {
-        components: {Navbar}
+        components: {Navbar},
+        created() {
+            this.$http.get('/login').then(res => {
+                if(!res.data.id)
+                    return console.log("Login error", res.data);
+
+                this.$store.commit('setUser', res.data);
+                this.$socket.open();
+            });
+
+            this.$socket.on('error', res => {
+                console.log("ERROR", res)
+            })
+        }
     }
 </script>

@@ -12,7 +12,7 @@
                 {{playlist.likes.length}}
             </div>
             <div class="playlist-additional-author">
-                <Icon type="person" size="23"></Icon> {{playlist.author}}
+                <Icon type="person" size="23"></Icon> {{playlist.author.first_name}} {{playlist.author.last_name}}
             </div>
         </Col>
     </Row>
@@ -25,7 +25,7 @@
         methods: {
             likePlaylist(playlist) {
                 this.$socket.emit('likePlaylist', playlist, (data) => {
-                    playlist.like = data.like
+                    playlist.like = data.like;
                 })
             }
         }

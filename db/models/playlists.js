@@ -1,6 +1,29 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const user = {
+    id: {
+        type: Number,
+        required: true,
+    },
+    first_name: {
+        type: String,
+        required: true,
+        minlength: 2,
+        maxlength: 30
+    },
+    last_name: {
+        type: String,
+        required: true,
+        minlength: 2,
+        maxlength: 30
+    },
+    photo_50: {
+        type: String,
+        required: true
+    }
+};
+
 const playlistScheme = new Schema({
     name: {
         type: String,
@@ -8,13 +31,8 @@ const playlistScheme = new Schema({
         minlength: 3,
         maxlength: 20
     },
-    author: {
-        type: String,
-        required: true,
-        minlength: 3,
-        maxlength: 20
-    },
-    likes: [String],
+    author: user,
+    likes: [user],
     tracks: [
         {
             artist: {
@@ -55,17 +73,17 @@ class Playlists {
         return await p.save();
     }
 
-    async like(playlistId, uid) {
+    async like(playlistId, user) {
         return await this.model.update(
             { _id: playlistId },
-            { $push: { likes: uid } }
+            { $push: { likes: user } }
         )
     }
 
-    async unlike(playlistId, uid) {
+    async unlike(playlistId, user) {
         return await this.model.update(
             { _id: playlistId },
-            { $pull: { likes:  uid }}
+            { $pull: { likes:  user }}
         )
     }
 }
