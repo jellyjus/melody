@@ -1,10 +1,11 @@
 <template>
     <div>
-        <Row class="rooms">
+        <Row v-if="currentRoom">
             <h1>Ваша игра</h1>
+            <Room :room="currentRoom"></Room>
         </Row>
 
-        <Row class="header">
+        <Row class="rooms">
             <h1>Ожидают игры</h1>
             <Button type="primary" class="create_room" @click="createRoom">Создать игру</Button>
         </Row>
@@ -12,20 +13,32 @@
 </template>
 
 <script>
+    import Room from "./Room";
     export default {
         name: "Rooms",
+        components: {Room},
         data() {
             return {
-
+                currentRoom: null
             }
         },
         created() {
-            this.$socket.emit('getRooms', null, res => {
-                for (let key in res) {
-                    console.log(res[key]);
+            this.$socket.emit('getRooms', null, rooms => {
+                console.log('rooms: ',rooms)
+                for (let key in rooms) {
+                    for (let member of rooms[key].members) {
+                        if (member.id === this.user.id) {
+                            this.currentRoom = rooms[key];
+                            break;
+                        }
+                    }
                 }
-                //console.log('rooms: ',res)
             })
+        },
+        computed: {
+            user() {
+                return this.$store.state.user
+            }
         },
         methods: {
             createRoom() {
@@ -36,11 +49,11 @@
 </script>
 
 <style scoped>
-    .header {
+    .rooms {
         margin: 10px 0;
     }
 
-    .header h1 {
+    .rooms h1 {
         float: left;
     }
 

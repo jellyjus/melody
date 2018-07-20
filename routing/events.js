@@ -17,6 +17,8 @@ class Events {
 
     initEvents(socket) {
         this.logger.info('socket connected', socket.user);
+
+        this.isInRoom(socket);
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
@@ -30,6 +32,17 @@ class Events {
 
     disconnect() {
         this.logger.debug("socket disconnected")
+    }
+
+    isInRoom(socket) {
+        for (let key in this.io.rooms) {
+            const idx = this.io.rooms[key].members.findIndex(member => member.id === socket.user.id);
+            if (idx === -1)
+                continue;
+
+            socket.join(this.io.rooms[key].ID);
+            return;
+        }
     }
 
     async getAlbums(socket, data, cb) {
@@ -94,16 +107,17 @@ class Events {
     }
 
     getRooms(socket, data, cb) {
-        cb(this.io.of('/').adapter.rooms)
+        cb(this.io.rooms);
+        // cb(this.io.of('/').adapter.rooms)
     }
 
     createRoom(socket, data, cb) {
         try {
-            const roomID = `${socket.uid}_${+new Date()}`;
+            const roomID = `${socket.user.id}_${+new Date()}`;
+            this.io.rooms[roomID] = new Room(socket, roomID, data);
             socket.join(roomID);
-            let room = this.getRoom(roomID);
-            room = Object.assign(room, new Room(socket, roomID, data));
-            cb(room)
+
+            cb(this.io.rooms[roomID])
         } catch (e) {
             this.logger.error(`error on createPlaylist: ${e}`);
             cb({error: e.toString()})
