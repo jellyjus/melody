@@ -18,7 +18,7 @@ const user = {
         minlength: 2,
         maxlength: 30
     },
-    photo_50: {
+    photo_100: {
         type: String,
         required: true
     }

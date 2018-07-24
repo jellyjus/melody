@@ -28,7 +28,7 @@
                 Добавлено {{tracksCount}} трек(ов)
             </Col>
         </Row>
-        <Row type="flex" justify="space-around" style="margin-top: 20px">
+        <Row type="flex" style="margin-top: 20px">
             <Album v-for="album in albums" :data="album" :key="album.id"></Album>
         </Row>
     </div>

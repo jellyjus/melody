@@ -3,6 +3,8 @@ const vkApi = require('./vk-api');
 const Room = require('./models/Room');
 const auth = require('./auth');
 
+const HALL_ROOM = 'hall';
+
 class Events {
     constructor(io, db, logger, config) {
         this.io = io;
@@ -19,6 +21,7 @@ class Events {
         this.logger.info('socket connected', socket.user);
 
         this.isInRoom(socket);
+        socket.join(HALL_ROOM);
         socket.on('disconnect', this.disconnect.bind(this, socket));
         socket.on('getAlbums', this.getAlbums.bind(this, socket));
         socket.on('getAlbumTracks', this.getAlbumTracks.bind(this, socket));
@@ -27,7 +30,9 @@ class Events {
         socket.on('likePlaylist', this.likePlaylist.bind(this, socket));
 
         socket.on('getRooms', this.getRooms.bind(this, socket));
-        socket.on('createRoom', this.createRoom.bind(this, socket))
+        socket.on('createRoom', this.createRoom.bind(this, socket));
+        socket.on('joinRoom', this.joinRoom.bind(this, socket));
+        socket.on('leaveRoom', this.leaveRoom.bind(this, socket));
     }
 
     disconnect() {
@@ -117,9 +122,46 @@ class Events {
             this.io.rooms[roomID] = new Room(socket, roomID, data);
             socket.join(roomID);
 
-            cb(this.io.rooms[roomID])
+            cb(this.io.rooms[roomID]);
+            this.io.to(HALL_ROOM).emit('rooms', this.io.rooms);
         } catch (e) {
             this.logger.error(`error on createPlaylist: ${e}`);
+            cb({error: e.toString()})
+        }
+    }
+
+    joinRoom(socket, data, cb) {
+        try {
+            const room = this.io.rooms[data.id];
+            if (!room)
+                return cb({error: `room with id ${data.id} not exists`});
+
+            if (room.userInRoom(socket))
+                return cb({error: `user ${socket.user.id} already in room ${room.ID}`});
+
+            room.join(socket);
+
+            this.io.to(HALL_ROOM).emit('rooms', this.io.rooms);
+        } catch (e) {
+            this.logger.error(`error on joinRoom: ${e}`);
+            cb({error: e.toString()})
+        }
+    }
+
+    leaveRoom(socket, data, cb) {
+        try {
+            const room = this.io.rooms[data.id];
+            if (!room)
+                return cb({error: `room with id ${data.id} not exists`});
+
+            room.leave(socket);
+
+            if(!room.members.length)
+                delete this.io.rooms[data.id];
+
+            this.io.to(HALL_ROOM).emit('rooms', this.io.rooms);
+        } catch (e) {
+            this.logger.error(`error on leaveRoom: ${e}`);
             cb({error: e.toString()})
         }
     }

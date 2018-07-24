@@ -6,7 +6,8 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     user: null,
-    addedTracks: []
+    addedTracks: [],
+    rooms: {}
   },
   mutations: {
       addOrDeleteTrack(state, track) {
@@ -15,6 +16,9 @@ export default new Vuex.Store({
       },
       setUser(state, user) {
           state.user = user;
+      },
+      rooms(state, rooms) {
+          state.rooms = rooms;
       }
   },
   actions: {

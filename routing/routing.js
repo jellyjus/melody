@@ -2,17 +2,38 @@ const express = require('express');
 const crypto = require('crypto');
 const requestPromise = require('request-promise');
 const router = express.Router();
+const utils = require('../utils');
 const config = require('../config');
+
+let index = 0;
+const defaultUsers = [{
+    "id": 96113254,
+    "first_name": "Евгений",
+    "last_name": "Сироткин",
+    "photo_100": "https://pp.userapi.com/XOEZ40d8sJY9bzL7iMacqQkSB5EWKEJYO5fbyA/0fJMZBEBNzQ.jpg?ava=1"
+}, {
+    "id": 106074986,
+    "first_name": "Николай",
+    "last_name": "Куликов",
+    "photo_100": "https://pp.userapi.com/c824201/v824201226/11d433/OClKAZWjQME.jpg?ava=1"
+},
+    {
+        "id": 62943253,
+        "first_name": "Николай",
+        "last_name": "Пархимович",
+        "photo_100": "https://pp.userapi.com/c636524/v636524253/755b5/eyxu3Xsb29o.jpg?ava=1"
+    }];
 
 router.get('/login', async function(req, res) {
     try {
-        if (req.signedCookies[config.sessionCookie])
-            return res.json(req.signedCookies[config.sessionCookie]);
-
         if (process.env.NODE_ENV === 'dev') {
-            const user = await getUser('96113254');
-            res.cookie(config.sessionCookie, user, {signed: true});
+            const user = getRandomUser();
+            res.cookie(config.sessionCookie, utils.encrypt(JSON.stringify(user)));
             return res.json(user);
+        }
+
+        if (req.cookies[config.sessionCookie]) {
+            return res.json(JSON.parse(utils.decrypt(req.cookies[config.sessionCookie])));
         }
 
         const cookies = req.cookies;
@@ -23,7 +44,7 @@ router.get('/login', async function(req, res) {
         const hex = crypto.createHash('md5').update(tmp).digest("hex");
         if (cookies.auth_key === hex) {
             const user = await getUser(cookies.viewer_id);
-            res.cookie(config.sessionCookie, user, {signed: true});
+            res.cookie(config.sessionCookie, utils.encrypt(JSON.stringify(user)));
             return res.json(user);
         }
 
@@ -36,12 +57,18 @@ router.get('/login', async function(req, res) {
 });
 
 const getUser = async (uid) => {
-    const res = await requestPromise(`https://api.vk.com/method/users.get?user_id=${uid}&fields=photo_50&access_token=${config.vk_serviceKey}&v=5.80`, { json: true });
+    const res = await requestPromise(`https://api.vk.com/method/users.get?user_id=${uid}&fields=photo_100&lang=ru&access_token=${config.vk_serviceKey}&v=5.80`, { json: true });
     if (res.error) {
         throw new Error(`can't get user: ${res.error.error_msg}`)
     }
 
     return res.response[0];
+};
+
+const getRandomUser = () => {
+    index++;
+    return defaultUsers[index % defaultUsers.length]
+    //return defaultUsers[Math.floor(Math.random()*defaultUsers.length)];
 };
 
 module.exports = router;

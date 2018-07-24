@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const config = require('../config');
 
-const algorithm = 'aes-256-ctr';
+const algorithm = 'rc4';
 
 
 const encrypt = (text) => {

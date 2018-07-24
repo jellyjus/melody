@@ -1,6 +1,7 @@
 import axios from 'axios'
 const port = 8443;
-const SERVER_URL = (process.env.NODE_ENV === 'development')? `http://127.0.0.1:${port}` : '';
+// const SERVER_URL = (process.env.NODE_ENV === 'development')? `http://127.0.0.1:${port}` : '';
+const SERVER_URL = '';
 
 const http = {
     install(Vue, options) {

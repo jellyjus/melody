@@ -95,12 +95,7 @@ class Server {
             cert: fs.readFileSync('cert.pem')
         };
 
-        if (process.env.NODE_ENV === 'dev') {
-            const http = require('http');
-            this.server = http.createServer(this.app);
-        } else {
-            this.server = https.createServer(credentials, this.app);
-        }
+        this.server = https.createServer(credentials, this.app);
 
         this.server.listen(port, () => {
             this.logger.info(`Start listening on localhost:${port}`)

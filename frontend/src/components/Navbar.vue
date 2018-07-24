@@ -8,18 +8,22 @@
             <Icon type="ios-people"></Icon>
             Плейлисты
         </MenuItem>
+
+        <Avatar v-if="user" :src="user.photo_100" class="avatar" size="large"/>
     </Menu>
 </template>
 
 <script>
     export default {
         name: "Navbar",
-        created() {
-
-        },
         methods: {
             handleSelect(key) {
                 this.$router.push(key)
+            }
+        },
+        computed: {
+            user() {
+                return this.$store.state.user
             }
         }
     }
@@ -28,5 +32,10 @@
 <style scoped>
     .el-menu-demo {
         border-bottom: none;
+    }
+
+    .avatar {
+       float: right;
+        margin: 10px 10px;
     }
 </style>
