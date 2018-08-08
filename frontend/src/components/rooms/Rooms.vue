@@ -8,7 +8,7 @@
         <Row class="rooms">
             <div class="rooms-header">
                 <h1>Ожидают игры</h1>
-                <Button type="primary" class="create_room" @click="createRoom" v-if="!currentRoom.ID">Создать игру</Button>
+                <MyButton @click.native="createRoom" v-if="!currentRoom.ID" class="create_room">Создать игру</MyButton>
             </div>
             <Room v-for="room in rooms" :room="room" :curent="false" :key="room.ID" v-if="room.ID !== currentRoom.ID"></Room>
         </Row>
@@ -17,9 +17,11 @@
 
 <script>
     import Room from "./Room";
+    import MyButton from "../Button"
+
     export default {
         name: "Rooms",
-        components: {Room},
+        components: {MyButton, Room},
         data() {
             return {
                 currentRoom: {}

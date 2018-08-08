@@ -12,7 +12,7 @@ Utils.parseLocationParams();
 
 Vue.config.productionTip = false;
 Vue.use(iView);
-Vue.use(socket, store);
+Vue.use(socket, store, router);
 Vue.use(http);
 
 new Vue({

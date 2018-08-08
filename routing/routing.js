@@ -11,12 +11,12 @@ const defaultUsers = [{
     "first_name": "Евгений",
     "last_name": "Сироткин",
     "photo_100": "https://pp.userapi.com/XOEZ40d8sJY9bzL7iMacqQkSB5EWKEJYO5fbyA/0fJMZBEBNzQ.jpg?ava=1"
-}, {
+}, /*{
     "id": 106074986,
     "first_name": "Николай",
     "last_name": "Куликов",
     "photo_100": "https://pp.userapi.com/c824201/v824201226/11d433/OClKAZWjQME.jpg?ava=1"
-},
+},*/
     {
         "id": 62943253,
         "first_name": "Николай",

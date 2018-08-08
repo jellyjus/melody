@@ -1,11 +1,18 @@
+const utils = require('../../utils');
+
+const ROOM_STATUS_LOBBY = "LOBBY";
+const ROOM_STATUS_GAME = "GAME";
+
 class Room {
-    constructor(socket, roomID, data) {
+    constructor(socket, roomID, roomName, playlist, vkApi) {
         this.host = socket.user;
-        this.roomName = data.name;
-        this.playlist = data.playlist;
+        this.roomName = roomName;
+        this.playlist = playlist;
         this.ID = roomID;
         this.members = [this.host];
         this.maxMembersLength = 2;
+        this.status = ROOM_STATUS_LOBBY;
+        this.vkApi = vkApi;
     }
 
     join(socket) {
@@ -19,6 +26,9 @@ class Room {
 
         this.members.push(socket.user);
         socket.join(this.ID);
+
+        if (this.members.length === this.maxMembersLength)
+            this.startGame(socket)
     }
 
 
@@ -32,11 +42,38 @@ class Room {
         socket.leave(this.ID);
     }
 
+    startGame(socket) {
+        //TODO: ливать из hall
+        this.status = ROOM_STATUS_GAME;
+
+        socket.nsp.to(this.ID).emit('currentGame', this.getPublicRoomObject());
+
+        this.sendNewTrack(socket)
+    }
+
+    async sendNewTrack(socket) {
+        const randomTrack = utils.getRandomItem(this.playlist.tracks);
+        const tracks = (await this.vkApi.getTracks(randomTrack.id)).response;
+
+        if (!tracks[0]) {
+            socket.nsp.to(this.ID).emit('error', tracks);
+            return;
+        }
+
+        this.currentTrack = tracks[0];
+
+        socket.nsp.to(this.ID).emit('newTrack', this.currentTrack.url);
+    }
+
     userInRoom(socket) {
         const idx = this.members.findIndex(member => member.id === socket.user.id);
         return idx !== -1
     }
 
+    getPublicRoomObject() {
+        return Object.assign({}, this, {playlist: {tracks: undefined}, vkApi: undefined, currentTrack: undefined})
+    }
+
 }
 
-module.exports = Room;
+module.exports = {Room, ROOM_STATUS_GAME, ROOM_STATUS_LOBBY};

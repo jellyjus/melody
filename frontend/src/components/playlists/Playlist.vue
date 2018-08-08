@@ -3,7 +3,7 @@
         <Col span="16">
             <img src="../../assets/playlist.png">
             <div class="playlist-name">{{playlist.name}}</div>
-            <div class="playlist-tracks">Треков: {{playlist.tracks.length}}</div>
+            <!--<div class="playlist-tracks">Треков: {{playlist.tracks.length}}</div>-->
         </Col>
         <Col span="8" class="playlist-additional">
             <div class="playlist-additional-likes">

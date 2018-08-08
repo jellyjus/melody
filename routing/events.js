@@ -1,6 +1,6 @@
 const vkApi = require('./vk-api');
 
-const Room = require('./models/Room');
+const {Room, ROOM_STATUS_LOBBY, ROOM_STATUS_GAME} = require('./models/Room');
 const auth = require('./auth');
 
 const HALL_ROOM = 'hall';
@@ -8,7 +8,7 @@ const HALL_ROOM = 'hall';
 class Events {
     constructor(io, db, logger, config) {
         this.io = io;
-        this.io.rooms = {};
+        this.rooms = {};
         this.db = db;
         this.logger = logger;
         this.config = config;
@@ -40,12 +40,19 @@ class Events {
     }
 
     isInRoom(socket) {
-        for (let key in this.io.rooms) {
-            const idx = this.io.rooms[key].members.findIndex(member => member.id === socket.user.id);
+        for (let key in this.rooms) {
+            const idx = this.rooms[key].members.findIndex(member => member.id === socket.user.id);
             if (idx === -1)
                 continue;
 
-            socket.join(this.io.rooms[key].ID);
+            socket.join(this.rooms[key].ID);
+            if (this.rooms[key].status === ROOM_STATUS_GAME) {
+                socket.emit('currentGame', this.rooms[key].getPublicRoomObject());
+
+                if (this.rooms[key].currentTrack)
+                    socket.emit('newTrack', this.rooms[key].currentTrack.url);
+            }
+
             return;
         }
     }
@@ -55,9 +62,9 @@ class Events {
             const res = await this.vkApi.getAlbums(socket.user.id);
             cb(res)
         } catch (e) {
-            this.logger.error(`error on getAlbums: ${e}`);
-            cb({error: e})
-        }
+            this.logger.error(`error on getAlbums: ${e.toString()}`);
+            socket.error({error: e.toString()});
+          }
     }
 
     async getAlbumTracks(socket, data, cb) {
@@ -66,20 +73,31 @@ class Events {
             const res = await this.vkApi.getAlbumTracks(socket.user.id, albumId);
             cb(res)
         } catch (e) {
-            this.logger.error(`error on getAlbumTracks: ${e}`);
-            cb({error: e})
+            this.logger.error(`error on getAlbumTracks: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
     async addPlaylist(socket, data, cb) {
         try {
             data.author = socket.user;
+
+            data.tracks = data.tracks.map(track => {
+                if (!track.id || !track.owner_id)
+                    throw new Error(`track ${track} doesn't have id or owner_id`);
+                return {
+                    id: `${track.owner_id}_${track.id}`,
+                    artist: track.artist,
+                    title: track.title
+                }
+            });
+
             this.logger.debug(`adding playlist`, data);
             const res = await this.db.playlists.add(data);
             cb(res)
         } catch (e) {
-            this.logger.error(`error on createPlaylist: ${e}`);
-            cb({error: e})
+            this.logger.error(`error on createPlaylist: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
@@ -88,8 +106,8 @@ class Events {
             const res = await this.db.playlists.getAll();
             cb(res)
         } catch (e) {
-            this.logger.error(`error on createPlaylist: ${e}`);
-            cb({error: e})
+            this.logger.error(`error on createPlaylist: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
@@ -106,69 +124,107 @@ class Events {
                 cb({like: false})
             }
         } catch (e) {
-            this.logger.error(`error on createPlaylist: ${e}`);
-            cb({error: e})
+            this.logger.error(`error on createPlaylist: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
     getRooms(socket, data, cb) {
-        cb(this.io.rooms);
+        cb(this.getLobbyRooms());
         // cb(this.io.of('/').adapter.rooms)
     }
 
-    createRoom(socket, data, cb) {
+    async createRoom(socket, data, cb) {
         try {
+
+            const room = this.userInAnyRoom(socket);
+            if (room) {
+                socket.error({error: `user already in room ${room.ID}`});
+                return
+            }
+
+            if (!data.name || !data.playlistId) {
+                socket.error({error: `room name or playlist ID required`});
+                return
+            }
+
             const roomID = `${socket.user.id}_${+new Date()}`;
-            this.io.rooms[roomID] = new Room(socket, roomID, data);
+            const playlists = await this.db.playlists.getById(data.playlistId);
+            this.rooms[roomID] = new Room(socket, roomID, data.name, playlists[0], this.vkApi);
             socket.join(roomID);
 
-            cb(this.io.rooms[roomID]);
-            this.io.to(HALL_ROOM).emit('rooms', this.io.rooms);
+            cb(this.rooms[roomID]);
+            this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
         } catch (e) {
-            this.logger.error(`error on createPlaylist: ${e}`);
-            cb({error: e.toString()})
+            this.logger.error(`error on createRoom: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
     joinRoom(socket, data, cb) {
         try {
-            const room = this.io.rooms[data.id];
-            if (!room)
-                return cb({error: `room with id ${data.id} not exists`});
+            let room = this.userInAnyRoom(socket);
+            if (room) {
+                if (room.status === ROOM_STATUS_GAME) {
+                    socket.error({error: `user already in room ${room.ID}`});
+                    return
+                }
+                this.leaveRoom(socket, {id: room.ID}, cb)
+            }
 
-            if (room.userInRoom(socket))
-                return cb({error: `user ${socket.user.id} already in room ${room.ID}`});
+            room = this.rooms[data.id];
+            if (!room) {
+                socket.error({error: `room with id ${data.id} not exists`});
+                return;
+            }
 
             room.join(socket);
 
-            this.io.to(HALL_ROOM).emit('rooms', this.io.rooms);
+            this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
         } catch (e) {
-            this.logger.error(`error on joinRoom: ${e}`);
-            cb({error: e.toString()})
+            this.logger.error(`error on joinRoom: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
     leaveRoom(socket, data, cb) {
         try {
-            const room = this.io.rooms[data.id];
-            if (!room)
-                return cb({error: `room with id ${data.id} not exists`});
+            const room = this.rooms[data.id];
+            if (!room) {
+                socket.error({error: `room with id ${data.id} not exists`});
+                return;
+            }
 
             room.leave(socket);
 
             if(!room.members.length)
-                delete this.io.rooms[data.id];
+                delete this.rooms[data.id];
 
-            this.io.to(HALL_ROOM).emit('rooms', this.io.rooms);
+            if (room.status === ROOM_STATUS_LOBBY)
+                this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
+            else {
+                this.io.to(room.ID).emit('roomMembers', room.members);
+                cb();
+            }
         } catch (e) {
-            this.logger.error(`error on leaveRoom: ${e}`);
-            cb({error: e.toString()})
+            this.logger.error(`error on leaveRoom: ${e.toString()}`);
+            socket.error({error: e.toString()});
         }
     }
 
-    getRoom(id) {
-        return this.io.of('/').adapter.rooms[id]
+    userInAnyRoom(socket) {
+        for (let key in this.rooms)
+            if (this.rooms[key].userInRoom(socket))
+                return this.rooms[key];
+        return false
+    }
+
+    getLobbyRooms() {
+        return Object.keys(this.rooms).reduce((res, key) => {
+            this.rooms[key].status === ROOM_STATUS_LOBBY? res[key] = this.rooms[key] : null;
+            return res;
+        }, {});
     }
 }
 
-module.exports = Events;
+module.exports = {Events, HALL_ROOM};

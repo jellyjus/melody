@@ -9,7 +9,7 @@ const socketCookieParser = require('socket.io-cookie-parser');
 
 const config = require('./config');
 const router = require('./routing/routing');
-const socketEvents = require('./routing/events');
+const {Events} = require('./routing/events');
 const Db = require('./db/db');
 
 class Server {
@@ -84,7 +84,7 @@ class Server {
     initSockets() {
         this.io = io(this.server);
         this.io.use(socketCookieParser());
-        const events = new socketEvents(this.io, this.db, this.logger, config);
+        const events = new Events(this.io, this.db, this.logger, config);
         this.io.on('connection', events.initEvents.bind(events));
     }
 

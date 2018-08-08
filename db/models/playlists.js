@@ -35,6 +35,10 @@ const playlistScheme = new Schema({
     likes: [user],
     tracks: [
         {
+            id: {
+                type: String,
+                required: true
+            },
             artist: {
                 type: String,
                 required: true,
@@ -46,11 +50,7 @@ const playlistScheme = new Schema({
                 required: true,
                 minlength: 2,
                 maxlength: 30
-            },
-            url: {
-                type: String,
-                required: true
-            },
+            }
         }
     ]
 });
@@ -61,7 +61,7 @@ class Playlists {
     }
 
     async getAll() {
-        return await this.model.find().exec()
+        return await this.model.find().select('-tracks').exec()
     }
 
     async getById(id) {

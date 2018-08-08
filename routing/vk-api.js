@@ -16,6 +16,11 @@ class VkApi {
         return this._request(url)
     }
 
+    async getTracks(audios) {
+        const url = this._getUrl("getById", {audios});
+        return this._request(url)
+    }
+
     _getUrl(method, params = {}, type = 'audio') {
         const q = querystring.stringify(params);
         return `https://api.vk.com/method/${type}.${method}?access_token=${this.config.vkToken}&v=5.71&${q}`

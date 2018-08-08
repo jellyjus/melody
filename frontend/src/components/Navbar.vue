@@ -1,12 +1,14 @@
 <template>
     <Menu mode="horizontal" active-name="rooms" @on-select="handleSelect">
         <MenuItem name="/rooms">
-            <Icon type="ios-paper"></Icon>
             Комнаты
         </MenuItem>
         <MenuItem name="/playlists">
-            <Icon type="ios-people"></Icon>
             Плейлисты
+        </MenuItem>
+        <MenuItem :name="'/game' + currentGame.ID" v-if="currentGame">
+            <Icon type="music-note"></Icon>
+            {{currentGame.roomName}}
         </MenuItem>
 
         <Avatar v-if="user" :src="user.photo_100" class="avatar" size="large"/>
@@ -24,6 +26,9 @@
         computed: {
             user() {
                 return this.$store.state.user
+            },
+            currentGame() {
+                return this.$store.state.currentGame
             }
         }
     }

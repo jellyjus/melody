@@ -5,6 +5,7 @@ import CreateRoom from './components/rooms/CreateRoom'
 import Playlists from './components/playlists/Playlists'
 import AddPlaylist from './components/playlists/AddPlaylist'
 import AlbumTracks from './components/playlists/AlbumTracks'
+import Game from './components/game/Game'
 
 Vue.use(Router);
 
@@ -33,6 +34,11 @@ export default new Router({
       {
           path: '/add_playlist/:id',
           component: AlbumTracks,
+          props: true
+      },
+      {
+          path: '/game:id',
+          component: Game,
           props: true
       },
   ]

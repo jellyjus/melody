@@ -14,8 +14,8 @@
 
         </Playlist>
 
-        <Col span="12" offset="6" class="create">
-            <Button type="primary" long @click="createRoom">Создать</Button>
+        <Col span="24" class="create">
+            <MyButton @click.native="createRoom" :large="true">Создать</MyButton>
         </Col>
 
     </div>
@@ -23,10 +23,11 @@
 
 <script>
     import Playlist from "../playlists/Playlist";
+    import MyButton from "../Button";
 
     export default {
         name: "CreateRoom",
-        components: {Playlist},
+        components: {MyButton, Playlist},
         data() {
             return {
                 roomName: null,
@@ -56,7 +57,7 @@
             createRoom() {
                 const data = {
                     name: this.roomName,
-                    playlist: this.playlist
+                    playlistId: this.playlist._id
                 };
                 this.$socket.emit('createRoom', data, (res) => {
                     this.$router.push('/rooms')
@@ -81,5 +82,6 @@
 
     .create {
         margin-top: 20px;
+        text-align: center;
     }
 </style>

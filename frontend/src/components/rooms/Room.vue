@@ -1,7 +1,7 @@
 <template>
     <Card shadow class="container">
         <p slot="title">{{room.roomName}}</p>
-        <p slot="title" class="subtitle">Playlist: {{room.playlist.name}} ({{room.playlist.tracks.length}} tracks)</p>
+        <p slot="title" class="subtitle">Playlist: {{room.playlist.name}} <!--({{room.playlist.tracks.length}} tracks)--></p>
         <Icon slot="title" size="30" type="android-close" class="leave" @click="leaveRoom" v-if="isCurrentRoom"></Icon>
 
         <div class="members">
@@ -92,11 +92,9 @@
         color: #717b8a;
         transition: .2s;
         padding: 4px 10px;
-        border-radius: 50%;
     }
 
     .leave:hover {
         color: #c21a1e;
-        background-color: #c2ccdd;;
     }
 </style>

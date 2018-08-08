@@ -1,8 +1,13 @@
 <template>
   <div id="app">
+
+    <audio id="audio" controls ref="player" crossorigin="anonymous"></audio>
+
     <Navbar></Navbar>
     <Layout class="layout">
-      <router-view/>
+      <keep-alive include="Game">
+        <router-view/>
+      </keep-alive>
     </Layout>
 
   </div>
@@ -23,6 +28,10 @@
     padding: 10px 10px;
     height: 100%;
     overflow-y: auto;
+  }
+
+  #audio {
+    display: none;
   }
 </style>
 <script>

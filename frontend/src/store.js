@@ -7,7 +7,8 @@ export default new Vuex.Store({
   state: {
     user: null,
     addedTracks: [],
-    rooms: {}
+    rooms: {},
+    currentGame: null,
   },
   mutations: {
       addOrDeleteTrack(state, track) {
@@ -19,6 +20,9 @@ export default new Vuex.Store({
       },
       rooms(state, rooms) {
           state.rooms = rooms;
+      },
+      currentGame(state, data) {
+          state.currentGame = data;
       }
   },
   actions: {

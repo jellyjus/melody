@@ -3,7 +3,6 @@ const config = require('../config');
 
 const algorithm = 'rc4';
 
-
 const encrypt = (text) => {
     const cipher = crypto.createCipher(algorithm, config.vk_clientSecret);
     let crypted = cipher.update(text,'utf8','hex');
@@ -18,7 +17,12 @@ const decrypt = (text) => {
     return dec;
 };
 
+const getRandomItem = (array) => {
+    return array[Math.floor(Math.random()*array.length)];
+};
+
 module.exports = {
     encrypt,
-    decrypt
+    decrypt,
+    getRandomItem
 };
