@@ -47,7 +47,6 @@
                         }
                     }
                 }
-                console.log('rooms', rooms);
                 return rooms;
             }
         },

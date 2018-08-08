@@ -52,7 +52,6 @@
         methods: {
             selectPlaylist(playlist) {
                 this.playlist = playlist;
-                console.log(playlist)
             },
             createRoom() {
                 const data = {

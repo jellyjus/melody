@@ -26,6 +26,7 @@ class Room {
 
         this.members.push(socket.user);
         socket.join(this.ID);
+        socket.roomID = this.ID;
 
         if (this.members.length === this.maxMembersLength)
             this.startGame(socket)
@@ -40,6 +41,7 @@ class Room {
 
         this.members.splice(idx, 1);
         socket.leave(this.ID);
+        delete socket.roomID;
     }
 
     startGame(socket) {

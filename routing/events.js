@@ -33,6 +33,8 @@ class Events {
         socket.on('createRoom', this.createRoom.bind(this, socket));
         socket.on('joinRoom', this.joinRoom.bind(this, socket));
         socket.on('leaveRoom', this.leaveRoom.bind(this, socket));
+
+        socket.on('chatMessage', this.chatMessage.bind(this, socket));
     }
 
     disconnect() {
@@ -46,6 +48,7 @@ class Events {
                 continue;
 
             socket.join(this.rooms[key].ID);
+            socket.roomID = this.rooms[key].ID;
             if (this.rooms[key].status === ROOM_STATUS_GAME) {
                 socket.emit('currentGame', this.rooms[key].getPublicRoomObject());
 
@@ -203,13 +206,22 @@ class Events {
             if (room.status === ROOM_STATUS_LOBBY)
                 this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
             else {
-                this.io.to(room.ID).emit('roomMembers', room.members);
+                this.io.to(room.ID).emit('currentGame', room.getPublicRoomObject());
                 cb();
             }
         } catch (e) {
             this.logger.error(`error on leaveRoom: ${e.toString()}`);
             socket.error({error: e.toString()});
         }
+    }
+
+    chatMessage(socket, data, cb) {
+        const message = {
+            author: socket.user,
+            message: data
+        };
+
+        this.io.to(socket.roomID).emit('chatMessage', message);
     }
 
     userInAnyRoom(socket) {
