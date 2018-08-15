@@ -50,10 +50,10 @@ class Events {
             socket.join(this.rooms[key].ID);
             socket.roomID = this.rooms[key].ID;
             if (this.rooms[key].status === ROOM_STATUS_GAME) {
-                socket.emit('currentGame', this.rooms[key].getPublicRoomObject());
+                socket.emit('currentGame', this.rooms[key].publicObject);
 
-                if (this.rooms[key].currentTrack)
-                    socket.emit('newTrack', this.rooms[key].currentTrack.url);
+                if (this.rooms[key]._currentTrack)
+                    socket.emit('newTrack', this.rooms[key]._currentTrack.url);
             }
 
             return;
@@ -155,6 +155,7 @@ class Events {
             const playlists = await this.db.playlists.getById(data.playlistId);
             this.rooms[roomID] = new Room(socket, roomID, data.name, playlists[0], this.vkApi);
             socket.join(roomID);
+            socket.roomID = roomID;
 
             cb(this.rooms[roomID]);
             this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
@@ -206,7 +207,7 @@ class Events {
             if (room.status === ROOM_STATUS_LOBBY)
                 this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
             else {
-                this.io.to(room.ID).emit('currentGame', room.getPublicRoomObject());
+                this.io.to(room.ID).emit('currentGame', room.publicObject);
                 cb();
             }
         } catch (e) {
@@ -233,7 +234,7 @@ class Events {
 
     getLobbyRooms() {
         return Object.keys(this.rooms).reduce((res, key) => {
-            this.rooms[key].status === ROOM_STATUS_LOBBY? res[key] = this.rooms[key] : null;
+            this.rooms[key].status === ROOM_STATUS_LOBBY? res[key] = this.rooms[key].publicObject : null;
             return res;
         }, {});
     }

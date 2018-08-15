@@ -2,6 +2,7 @@ const utils = require('../../utils');
 
 const ROOM_STATUS_LOBBY = "LOBBY";
 const ROOM_STATUS_GAME = "GAME";
+const HINT_INTERVAL = 3000;
 
 class Room {
     constructor(socket, roomID, roomName, playlist, vkApi) {
@@ -12,7 +13,7 @@ class Room {
         this.members = [this.host];
         this.maxMembersLength = 2;
         this.status = ROOM_STATUS_LOBBY;
-        this.vkApi = vkApi;
+        this._vkApi = vkApi;
     }
 
     join(socket) {
@@ -48,32 +49,68 @@ class Room {
         //TODO: ливать из hall
         this.status = ROOM_STATUS_GAME;
 
-        socket.nsp.to(this.ID).emit('currentGame', this.getPublicRoomObject());
+        socket.nsp.to(this.ID).emit('currentGame', this.publicObject);
 
         this.sendNewTrack(socket)
     }
 
     async sendNewTrack(socket) {
         const randomTrack = utils.getRandomItem(this.playlist.tracks);
-        const tracks = (await this.vkApi.getTracks(randomTrack.id)).response;
+        const tracks = (await this._vkApi.getTracks(randomTrack.id)).response;
 
         if (!tracks[0]) {
             socket.nsp.to(this.ID).emit('error', tracks);
             return;
         }
 
-        this.currentTrack = tracks[0];
+        this._currentTrack = {
+            url: tracks[0].url,
+            artist: randomTrack.artist,
+            title: randomTrack.title
+        };
 
-        socket.nsp.to(this.ID).emit('newTrack', this.currentTrack.url);
+        this._currentTrack.artistLetterGenerator = utils.getPseudoRandomLetterGenerator(this._currentTrack.artist.split(''));
+        this._currentTrack.titleLetterGenerator = utils.getPseudoRandomLetterGenerator(this._currentTrack.title.split(''));
+
+        this.currentTrackHint = {
+            artist: new Array(this._currentTrack.artist.length),
+            title: new Array(this._currentTrack.title.length)
+        };
+
+        socket.nsp.to(this.ID).emit('newTrack', this._currentTrack.url);
+
+        this._hintSetInterval = setInterval(this.sendHint.bind(this, socket), HINT_INTERVAL)
     }
+
+    sendHint(socket) {
+        const artistHint = this._currentTrack.artistLetterGenerator.next();
+        const titleHint = this._currentTrack.titleLetterGenerator.next();
+
+        console.log('111', artistHint, titleHint);
+
+        this.currentTrackHint.artist[artistHint.value.index] = artistHint.value.item;
+        this.currentTrackHint.title[titleHint.value.index] = titleHint.value.item;
+
+        console.log('@@@',this.currentTrackHint);
+
+        socket.nsp.to(this.ID).emit('trackHint', this.currentTrackHint);
+    }
+
 
     userInRoom(socket) {
         const idx = this.members.findIndex(member => member.id === socket.user.id);
         return idx !== -1
     }
 
-    getPublicRoomObject() {
-        return Object.assign({}, this, {playlist: {tracks: undefined}, vkApi: undefined, currentTrack: undefined})
+    get publicObject() {
+        let internalProps = {};
+
+        for (let key in this)
+            if (key.startsWith('_'))
+                internalProps[key] = undefined;
+
+        return Object.assign({}, this, internalProps)
+        //return Object.assign({}, this, {playlist: {tracks: undefined}, vkApi: undefined, currentTrack: undefined})
     }
 
 }

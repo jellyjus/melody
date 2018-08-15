@@ -21,8 +21,22 @@ const getRandomItem = (array) => {
     return array[Math.floor(Math.random()*array.length)];
 };
 
+function* getPseudoRandomLetterGenerator(array) {
+    let i = array.length;
+    while (i--) {
+        const index = Math.floor(Math.random() * (i+1));
+        const item = array.splice(index, 1)[0];
+        yield {
+            index,
+            item
+        }
+    }
+    return
+}
+
 module.exports = {
     encrypt,
     decrypt,
-    getRandomItem
+    getRandomItem,
+    getPseudoRandomLetterGenerator
 };
