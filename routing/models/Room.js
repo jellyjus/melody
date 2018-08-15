@@ -2,7 +2,8 @@ const utils = require('../../utils');
 
 const ROOM_STATUS_LOBBY = "LOBBY";
 const ROOM_STATUS_GAME = "GAME";
-const HINT_INTERVAL = 3000;
+const HINT_INTERVAL = 4000;
+const HINT_FIRST_TIMEOUT = 3000;
 
 class Room {
     constructor(socket, roomID, roomName, playlist, vkApi) {
@@ -69,31 +70,54 @@ class Room {
             title: randomTrack.title
         };
 
-        this._currentTrack.artistLetterGenerator = utils.getPseudoRandomLetterGenerator(this._currentTrack.artist.split(''));
-        this._currentTrack.titleLetterGenerator = utils.getPseudoRandomLetterGenerator(this._currentTrack.title.split(''));
+        console.log('NEW TRACK', this._currentTrack);
+
+        this._currentTrack.artistLetterGenerator = utils.getPseudoRandomLetterGenerator(this._currentTrack.artist);
+        this._currentTrack.titleLetterGenerator = utils.getPseudoRandomLetterGenerator(this._currentTrack.title);
 
         this.currentTrackHint = {
-            artist: new Array(this._currentTrack.artist.length),
-            title: new Array(this._currentTrack.title.length)
+            artist: Array(this._currentTrack.artist.length),
+            title: Array(this._currentTrack.title.length)
         };
 
         socket.nsp.to(this.ID).emit('newTrack', this._currentTrack.url);
+        socket.nsp.to(this.ID).emit('trackHint', this.currentTrackHint);
 
-        this._hintSetInterval = setInterval(this.sendHint.bind(this, socket), HINT_INTERVAL)
+        this._hintSetTimeout = setTimeout(this.sendHint.bind(this, socket), HINT_INTERVAL + HINT_FIRST_TIMEOUT)
     }
 
     sendHint(socket) {
         const artistHint = this._currentTrack.artistLetterGenerator.next();
         const titleHint = this._currentTrack.titleLetterGenerator.next();
 
-        console.log('111', artistHint, titleHint);
-
         this.currentTrackHint.artist[artistHint.value.index] = artistHint.value.item;
         this.currentTrackHint.title[titleHint.value.index] = titleHint.value.item;
 
-        console.log('@@@',this.currentTrackHint);
-
         socket.nsp.to(this.ID).emit('trackHint', this.currentTrackHint);
+
+        if (artistHint.done || titleHint.done) {
+            clearTimeout(this._hintSetTimeout);
+            setTimeout(this.sendNewTrack.bind(this, socket), HINT_INTERVAL);
+            return;
+        }
+
+        this._hintSetTimeout = setTimeout(this.sendHint.bind(this, socket), HINT_INTERVAL)
+    }
+
+    isGameWinner(socket, message) {
+        message = message.trim().toLowerCase();
+
+        if (message.indexOf(this._currentTrack.artist.toLowerCase()) !== -1 || message.indexOf(this._currentTrack.title.toLowerCase()) !== -1) {
+            clearTimeout(this._hintSetTimeout);
+            this.currentTrackHint = {
+                artist: this._currentTrack.artist.split(''),
+                title: this._currentTrack.title.split('')
+            };
+            socket.nsp.to(this.ID).emit('chatNotification', {user: socket.user, notification: "угадывает трек!"});
+            socket.nsp.to(this.ID).emit('trackHint', this.currentTrackHint);
+
+            setTimeout(this.sendNewTrack.bind(this, socket), HINT_INTERVAL);
+        }
     }
 
 

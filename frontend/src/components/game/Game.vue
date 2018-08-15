@@ -4,8 +4,23 @@
         <canvas id="canvas"></canvas>
 
         <Row class="game">
+
             <Col span="14" class="game-col">
-                <div class="track">tracks</div>
+                <div class="track">
+                    <template  v-if="trackHint">
+                        <div class="track-artist">
+                            <div class="letter" v-for="letter in trackHint.artist">
+                                {{letter}}
+                            </div>
+                        </div>
+                        <div class="track-title">
+                            <div class="letter" v-for="letter in trackHint.title">
+                                {{letter}}
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
                 <div class="members" v-if="game">
                     <div class="member" v-for="member in game.members">
                         <Avatar :src="member.photo_100" class="member-avatar"/>
@@ -13,15 +28,24 @@
                     </div>
                 </div>
             </Col>
+
             <Col span="10" class="game-col">
                 <div class="chat">
                     <div class="chat-container">
                         <div class="chat-container-item" v-for="message in chatMessages">
-                            <Avatar :src="message.author.photo_100" class="chat-container-item-avatar"/>
-                            <div class="chat-container-item-text">
-                                <p>{{message.author.first_name}}</p>
-                                {{message.message}}
-                            </div>
+                            <template v-if="message.notification">
+                                <div class="chat-container-item-notification">
+                                    <p>{{message.user.first_name}} {{message.user.last_name}}</p>
+                                    {{message.notification}}
+                                </div>
+                            </template>
+                            <template v-else>
+                                <Avatar :src="message.author.photo_100" class="chat-container-item-avatar"/>
+                                <div class="chat-container-item-text">
+                                    <p>{{message.author.first_name}}</p>
+                                    {{message.message}}
+                                </div>
+                            </template>
                         </div>
                     </div>
                     <Input v-model="chatMessage" placeholder="Исполнитель или название трека" icon="md-send" autofocus @on-enter="sendMessage"></Input>
@@ -41,7 +65,8 @@
             return {
                 player: null,
                 chatMessage: null,
-                chatMessages: []
+                chatMessages: [],
+                trackHint: null
             }
         },
         created() {
@@ -60,6 +85,14 @@
             this.$socket.on('chatMessage', message => {
                 this.chatMessages.push(message);
             });
+
+            this.$socket.on('trackHint', hint => {
+                this.trackHint = hint;
+            });
+
+            this.$socket.on('chatNotification', notification => {
+                this.chatMessages.push(notification);
+            });
         },
         updated() {
             this.chatContainer.scrollTo(0,this.chatContainer.scrollHeight);
@@ -76,6 +109,7 @@
                     this.player.pause();
                     this.player.currentTime = 0;
                     this.$router.push(`/rooms`);
+                    this.$store.commit('currentGame', null);
                 })
             },
             sendMessage() {
@@ -157,8 +191,31 @@
     }
 
     .track {
+        display: flex;
+        flex-direction: column;
         flex-grow: 1;
         margin-bottom: 10px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .track-artist {
+        margin-bottom: 10px;
+    }
+
+    .letter {
+        display: inline-flex;
+        vertical-align:top;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.15);
+        width: 30px;
+        height: 50px;
+        margin: 5px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+
     }
 
     .chat {
@@ -204,10 +261,22 @@
         flex-grow: 1;
         margin-left: 5px;
         color: white;
+        font-size: 13px;
 
         p {
             font-weight: 600;
             color: #d1d1d1;
+        }
+    }
+
+    .chat-container-item-notification {
+        color: #d1d1d1;
+        font-size: 13px;
+        flex-grow: 1;
+        text-align: center;
+        p {
+            display: inline;
+            font-weight: 600;
         }
     }
 

@@ -21,17 +21,20 @@ const getRandomItem = (array) => {
     return array[Math.floor(Math.random()*array.length)];
 };
 
-function* getPseudoRandomLetterGenerator(array) {
+function* getPseudoRandomLetterGenerator(str) {
+    const array = [];
+
+    for (let i=0; i<str.length; i++)
+        array.push({item: str[i], index: i})
+
     let i = array.length;
     while (i--) {
-        const index = Math.floor(Math.random() * (i+1));
-        const item = array.splice(index, 1)[0];
-        yield {
-            index,
-            item
-        }
+        const letter = array.splice(Math.floor(Math.random() * (i+1)), 1)[0];
+        if (i)
+            yield letter;
+        else
+            return letter;
     }
-    return
 }
 
 module.exports = {

@@ -7,7 +7,6 @@
     "serve": "vue-cli-service serve --https",
     "build": "vue-cli-service build",
     "build-watch": "vue-cli-service build-watch"
-
   },
   "dependencies": {
     "axios": "^0.18.0",

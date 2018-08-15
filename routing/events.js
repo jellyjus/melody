@@ -208,6 +208,7 @@ class Events {
                 this.io.to(HALL_ROOM).emit('rooms', this.getLobbyRooms());
             else {
                 this.io.to(room.ID).emit('currentGame', room.publicObject);
+                this.io.to(room.ID).emit('chatNotification', {user: socket.user, notification: "покидает игру"});
                 cb();
             }
         } catch (e) {
@@ -223,6 +224,9 @@ class Events {
         };
 
         this.io.to(socket.roomID).emit('chatMessage', message);
+        const room = this.rooms[socket.roomID];
+
+        room.isGameWinner(socket, data)
     }
 
     userInAnyRoom(socket) {
