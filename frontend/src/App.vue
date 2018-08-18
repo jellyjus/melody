@@ -25,9 +25,21 @@
   }
 
   .layout {
+    background-image: url("assets/game_background.png") !important;
+    color: #f0f0f0 !important;
     padding: 10px 10px;
     height: 100%;
     overflow-y: auto;
+  }
+
+  .block {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px;
+    padding: 5px;
+  }
+
+  .ivu-card-head p {
+    color: #f0f0f0 !important;
   }
 
   #audio {

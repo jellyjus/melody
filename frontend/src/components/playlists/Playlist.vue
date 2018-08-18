@@ -6,13 +6,13 @@
             <!--<div class="playlist-tracks">Треков: {{playlist.tracks.length}}</div>-->
         </Col>
         <Col span="8" class="playlist-additional">
+            <Col span="16" class="playlist-additional-author">
+                <Icon type="person" size="23"></Icon> {{playlist.author.first_name}} {{playlist.author.last_name}}
+            </Col>
             <div class="playlist-additional-likes">
                 <Icon type="android-favorite-outline" size="23" @click="likePlaylist(playlist)" v-if="!playlist.like" class="playlist-additional-likes-empty"></Icon>
                 <Icon type="android-favorite" size="23" @click="likePlaylist(playlist)" v-else class="playlist-additional-likes-fill"></Icon>
                 {{playlist.likes.length}}
-            </div>
-            <div class="playlist-additional-author">
-                <Icon type="person" size="23"></Icon> {{playlist.author.first_name}} {{playlist.author.last_name}}
             </div>
         </Col>
     </Row>
@@ -63,7 +63,7 @@
     }
 
     .playlist-additional-likes {
-        margin-right: 30px;
+        margin-left: 20px;
         font-size: 16px;
         font-weight: 500;
     }
@@ -86,6 +86,6 @@
 
     .playlist-additional-author {
         font-size: 13px;
-        color: grey;
+        color: #e1e1e1;
     }
 </style>

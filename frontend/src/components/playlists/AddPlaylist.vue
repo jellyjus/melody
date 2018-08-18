@@ -1,16 +1,7 @@
 <template>
     <div>
         <Row>
-            <Col span="12">
-                <Breadcrumb>
-                    <BreadcrumbItem to="/playlists">
-                        <Icon type="ios-home-outline"></Icon> Плейлисты
-                    </BreadcrumbItem>
-                    <BreadcrumbItem to="/playlists/add_playlist">
-                        <Icon type="social-buffer-outline"></Icon> Создать
-                    </BreadcrumbItem>
-                </Breadcrumb>
-            </Col>
+            <h1>Создать плейлист</h1>
         </Row>
         <Row style="margin-top: 30px">
             <Col span="16">
@@ -19,7 +10,7 @@
                         <Input v-model="form.name" placeholder="Имя плейлиста" style="width: 300px"></Input>
                     </FormItem>
                     <FormItem prop="tracks">
-                        <Button type="primary" class="add-playlist-button" @click="addPlaylist">Создать</Button>
+                        <MyButton @click.native="addPlaylist" class="add-playlist-button">Создать</MyButton>
                     </FormItem>
                 </Form>
 
@@ -36,9 +27,11 @@
 
 <script>
     import Album from "./Album";
+    import MyButton from "../Button"
+
     export default {
         name: "AddPlaylist",
-        components: {Album},
+        components: {Albumб MyButton},
         data() {
             const validateTracks = (rule, value, callback) => {
                 if (this.tracksCount < 1) {
@@ -100,7 +93,4 @@
         font-weight: 500;
     }
 
-    .form {
-        margin-left: 40px;
-    }
 </style>

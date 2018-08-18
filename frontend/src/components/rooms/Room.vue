@@ -1,5 +1,5 @@
 <template>
-    <Card shadow class="container">
+    <Card shadow class="container block">
         <p slot="title">{{room.roomName}}</p>
         <p slot="title" class="subtitle">Playlist: {{room.playlist.name}} <!--({{room.playlist.tracks.length}} tracks)--></p>
         <Icon slot="title" size="30" type="android-close" class="leave" @click="leaveRoom" v-if="isCurrentRoom"></Icon>
@@ -13,11 +13,11 @@
                 <template v-else>
                     <template v-if="isCurrentRoom">
                         <Avatar icon="android-more-horizontal" class="member-avatar" style="background-color: transparent"/>
-                        <p class="member-name" style="color: #7b818e">Ожидание</p>
+                        <p class="member-name">Ожидание</p>
                     </template>
                     <template v-else>
                         <Avatar @click.native="joinRoom" icon="android-add" class="member-avatar" style="background-color: transparent"/>
-                        <p @click="joinRoom" class="member-name" style="color: #7b818e">Присоединиться</p>
+                        <p @click="joinRoom" class="member-name">Присоединиться</p>
                     </template>
                 </template>
             </div>
@@ -50,7 +50,7 @@
     }
 
     .subtitle {
-        color: grey;
+        color: #e1e1e1;
         font-weight: 400;
     }
 
@@ -73,11 +73,11 @@
         line-height: 60px;
         font-size: 34px !important;
         transition: .2s;
-        color: #b7c1d2;
+        color: #cdcdcd;
     }
 
     .member-avatar:hover {
-        color: #99a3b4;
+        color: #f0f0f0;
     }
 
     .member-name {
@@ -89,7 +89,7 @@
         top: 10px;
         right: 10px;
         cursor: pointer;
-        color: #717b8a;
+        color: #e1e1e1;
         transition: .2s;
         padding: 4px 10px;
     }

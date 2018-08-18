@@ -134,7 +134,6 @@
 
     .container {
         height: 100%;
-        background-image: url("../../assets/game_background.png");
         position: relative;
     }
 

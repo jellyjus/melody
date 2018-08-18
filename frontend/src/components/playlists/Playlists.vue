@@ -2,14 +2,10 @@
     <div>
         <Row>
             <Col span="12">
-                <Breadcrumb>
-                    <BreadcrumbItem to="/playlists">
-                        <Icon type="ios-home-outline"></Icon> Плейлисты
-                    </BreadcrumbItem>
-                </Breadcrumb>
+                <h1>Плейлисты</h1>
             </Col>
             <Col span="12">
-                <Button type="primary" icon="plus" class="header-add" @click="addPlaylist">Добавить</Button>
+                <MyButton @click.native="addPlaylist" class="header-add">Создать плейлист</MyButton>
             </Col>
         </Row>
 
@@ -18,10 +14,11 @@
 </template>
 <script>
     import Playlist from "./Playlist";
+    import MyButton from "../Button"
 
     export default {
         name: "Playlists",
-        components: {Playlist},
+        components: {Playlist, MyButton},
         data() {
             return {
                 playlists: []
